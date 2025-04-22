@@ -1,0 +1,119 @@
+import pyttsx3
+import speech_recognition as sr
+import pyjokes
+import wikipedia
+import datetime
+import pywhatkit
+import requests
+#
+# def ask_gemini(question):
+#     headers = {
+#         "Authorization": f"Bearer {gemini_api_key}",
+#         "Content-Type": "application/json"
+#     }
+#     payload = {
+#         "model": "gemini",  # Ensure this model name is correct
+#         "messages": [
+#             {"role": "system", "content": "You are a helpful assistant."},
+#             {"role": "user", "content": question}
+#         ]
+#     }
+#
+#     try:
+#         response = requests.post(gemini_api_url, json=payload, headers=headers)
+#         response.raise_for_status()  # Check if the request was successful
+#         print("Response Status:", response.status_code)
+#         print("Response Content:", response.text)  # Print raw response for debugging
+#         response_data = response.json()  # Parse the JSON response
+#         answer = response_data.get("choices")[0].get("message").get("content")
+#         return answer
+#     except requests.exceptions.RequestException as e:
+#         print(f"Error: {e}")
+#         return "Sorry Papa Jii, Gemini se reply nahi aaya."
+#     except Exception as e:
+#         print(f"Error while parsing response: {e}")
+#         return "Sorry Papa Jii, kuch gadbad ho gayi."
+
+
+
+engine = pyttsx3.init()
+
+voices = engine.getProperty('voices')
+
+engine.setProperty('voice', voices[1].id)
+engine.setProperty('rate', 180)
+engine.setProperty('volume', 1)
+
+
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
+
+def take_command():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        recognizer.adjust_for_ambient_noise(source)
+        audio = recognizer.listen(source)
+
+    try:
+        print("Recognizing...")
+        query = recognizer.recognize_google(audio, language='en-in')
+        print(f"User said: {query}")
+    except Exception:
+        speak("Sorry Papa Jii, I didn’t get that.")
+        return "None"
+    return query
+
+# Greet the user
+speak("Hello, I am your voice assistant. How may I help you?")
+
+if __name__ == "__main__":
+    speak("Hello Papa Jii! Chhoti ready hai.")
+    while True:
+        query = take_command().lower()
+
+        if "time" in query:
+            time = datetime.datetime.now().strftime("%H:%M:%S")
+            speak(f"The time is {time}")
+
+        elif "wikipedia" in query:
+            speak("Searching Wikipedia...")
+            query = query.replace("wikipedia", "")
+            try:
+                result = wikipedia.summary(query, sentences=2)
+                speak(result)
+            except Exception:
+                speak("Sorry, I couldn't find anything.")
+
+        elif "play song" in query or "play" in query:
+            song = query.replace("play song", "").replace("play", "")
+            speak(f"Playing {song} on YouTube")
+            pywhatkit.playonyt(song)
+
+        elif "joke" in query:
+            joke = pyjokes.get_joke()
+            speak(joke)
+
+        # elif "chhoti" in query:
+        #     speak("Kya sawaal hai Papa Jii?")
+        #     question = take_command()
+        #     answer = ask_gemini(question)
+        #     print(answer)
+        #     speak(answer)
+
+        # elif "generate image" in query:
+        #     speak("Batao Papa Jii, kis cheez ki image banau?")
+        #     img_prompt = take_command()
+        #     speak("Image bana rahi hoon...")
+        #     # You can implement an image generation API here like DALL-E or any other service
+        #     print(f"Image prompt: {img_prompt}")
+        #     speak("Image ready hai, dekho console mein link.")
+
+        elif "stop" in query or "sleep" in query:
+            speak("Okay Papa Jii, Choti is sleeping now.")
+            break
+
+        elif "exit" in query or "quit" in query:
+            speak("Goodbye, Papa Jii! Have a great day.")
+            break
